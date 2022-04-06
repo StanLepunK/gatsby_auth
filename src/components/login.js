@@ -1,6 +1,6 @@
 /**
  * Connexion
- * v 0.1.0
+ * v 0.2.0
  * 2022-2022
  * */
 
@@ -11,17 +11,73 @@ import { navigate } from "gatsby"
 import { handle_login, log_is } from "../services/auth"
 import { graphql, useStaticQuery  } from "gatsby"
 
+function build_users_list(nodes) {
+  let list = [];
+  let buf = [];
+  if (nodes === undefined) {
+    return null;
+  }
+  for (let i = 0; i < nodes.length; i++) {
+    const obj = {
+      id: nodes[i].id,
+      pseudo: nodes[i].pseudo,
+      username: nodes[i].username,
+      email: nodes[i].email,
+      firstname: nodes[i].firstname,
+      lastname: nodes[i].lastname,
+      password: nodes[i].password,
+    };
+    buf.push(obj);
+  }
+
+  // Not really necessary but just in case there a crossing list with element with a same id
+  for (let i = 0; i < buf.length; i++) {
+    let obj_temp = buf[i];
+    if (list.length === 0) {
+      list.push(obj_temp);
+    } else {
+      let add_is = true;
+      for (let k = 0; k < list.length; k++) {
+        if (obj_temp.id === list[k].id) {
+          add_is = false;
+          break;
+        }
+      }
+      if (add_is) {
+        list.push(obj_temp);
+      }
+    }
+  }
+  return list;
+}
+
 function Cell({title, type, name, onChange}) {
   return (
   <label>
     {title}
     <input type={type} name={name} onChange={onChange} />
   </label>
-
   )
 }
 
 const Login = () => {
+  const all = useStaticQuery(graphql`
+    query {
+      allMongodbAuthKnupelUsers {
+        nodes {
+          id
+          pseudo
+          username
+          email
+          firstname
+          lastname
+          password
+        }
+      }
+    }
+  `)
+
+  const [users_base, set_users_base] = useState(build_users_list(all.allMongodbAuthKnupelUsers.nodes));
   const [user, set_user] = useState({username: ``});
   const [psswrd, set_psswrd] = useState({password: ``});
   const [log, set_log] = useState({username: user.username, password: psswrd.password});
@@ -39,9 +95,11 @@ const Login = () => {
     set_log({username: user.username, password: psswrd.password});
   }, [psswrd])
 
+
+
   const handle_submit = event => {
     event.preventDefault();
-    handle_login(log);
+    handle_login(log,users_base);
   }
 
   if (log_is()) {
@@ -68,62 +126,4 @@ const Login = () => {
 
 export default Login
 
-
-// class Login extends React.Component {
-
-  
-//   state = {
-//     username: ``,
-//     password: ``,
-//   }
-
-//   handle_update = event => {
-//     this.setState({
-//       [event.target.name]: event.target.value,
-//     })
-//   }
-
-//   handle_submit = event => {
-//     event.preventDefault()
-//     handle_login(this.state)
-//   }
-
-//   render() {
-//     if (log_is()) {
-// 			console.log("je suis identifié");
-//       navigate(`/app/profile`);
-//     } else {
-// 			console.log("en attente");
-// 		}
-
-//     return (
-//       <>
-//         <h1>Log in</h1>
-//         <form
-//           method="post"
-//           onSubmit={event => {
-//             this.handle_submit(event)
-//             navigate(`/app/profile`)
-//           }}
-//         >
-//           <label>
-//             Username
-//             <input type="text" name="username" onChange={this.handle_update} />
-//           </label>
-//           <label>
-//             Password
-//             <input
-//               type="password"
-//               name="password"
-//               onChange={this.handle_update}
-//             />
-//           </label>
-//           <input type="submit" value="Log In" />
-//         </form>
-//       </>
-//     )
-//   }
-// }
-
-// export default Login
 

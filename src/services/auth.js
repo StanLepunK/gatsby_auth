@@ -15,31 +15,18 @@ export const get_user = () =>
 
 const set_user = user => window.localStorage.setItem("gatsby_user", JSON.stringify(user));
 
-export const handle_login = ({ username, password }) => {
+export const handle_login = ({ username, password }, users_base) => {
+  users_base.map((elem) => {
+    if (username === elem.username && password === elem.password) {
+      return set_user({
+        username: elem.username,
+        name: elem.pseudo,
+        email: elem.email,
+      })
+    }
 
-  // const { allMongodbAuthKnupelUsers } = useStaticQuery(graphql`
-  //   query {
-  //     allMongodbAuthKnupelUsers {
-  //       edges {
-  //         node {
-  //           firstname
-  //           email
-  //           password
-  //           pseudo
-  //           lastname
-  //         }
-  //       }
-  //     }
-  //   }
-  // `)
+  })
 
-  if (username === `stan` && password === `stan`) {
-    return set_user({
-      username: `stan`,
-      name: `Stanislas`,
-      email: `stan@knupel.xyz`,
-    })
-  }
   return false;
 }
 
@@ -52,22 +39,4 @@ export const logout = callback => {
   set_user({});
   callback();
 }
-
-
-// MONGO DB ACCES
-// export const pageQuery = graphql`
-//   query {
-//     allMongodbAuthKnupelUsers {
-//       edges {
-//         node {
-//           firstname
-//           email
-//           password
-//           pseudo
-//           lastname
-//         }
-//       }
-//     }
-//   }
-// `
 
